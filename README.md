@@ -40,6 +40,7 @@ To load the CMS data, use the following command:
 python load_quality.py <date> <file_name>
 ```
 Replace <file_name> with the name of the CSV file containing the quality data, e.g., Hospital_General_Information-2021-07.csv.
+
 For example:
 ```
 python load-quality.py 2021-07-01 Hospital_General_Information-2021-07.csv
