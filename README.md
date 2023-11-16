@@ -26,6 +26,7 @@ To load the HHS data, use the following command:
 ```
 python load-hhs.py <file_name>
 ```
+Replace <file_name> with the name of the CSV file containing the weekly updates, e.g., 2022-01-04-hhs-data.csv.
 
 For example: 
 ```
@@ -36,8 +37,9 @@ python load-hhs.py 2022-01-04-hhs-data.csv
 
 To load the CMS data, use the following command:
 ```
-python load_qualirt.py <date> <file_name>
+python load_quality.py <date> <file_name>
 ```
+Replace <file_name> with the name of the CSV file containing the weekly updates, e.g., Hospital_General_Information-2021-07.csv, and <date> with the date of the file.
 
 For example:
 ```
