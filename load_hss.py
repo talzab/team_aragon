@@ -53,6 +53,15 @@ def load_hhs_data(csv_file, conn):
     df = df.astype(float, errors='ignore')
     df['collection_week'] = pd.to_datetime(df['collection_week'], format = '%Y-%m-%d').dt.date
 
+    hospitals_success_count = 0
+    hospitals_error_count = 0
+
+    hospitallocation_success_count = 0
+    hospitallocation_error_count = 0
+
+    hospitalbedinformation_success_count = 0
+    hospitalbedinformation_error_count = 0
+
     try:
         # Create a cursor and open a transaction
         with conn.cursor() as curr:
@@ -65,8 +74,10 @@ def load_hhs_data(csv_file, conn):
                     if not check_duplicate_id(curr, 'Hospitals', 'hospital_pk', row['hospital_pk']):
                         curr.execute(''' INSERT INTO Hospitals (hospital_pk, hospital_name) VALUES (%s, %s)''', 
                             (row['hospital_pk'], row['hospital_name']))
+                        hospitals_success_count += 1
                     else:
                         print(f"Skipping row {index} due to duplicate ID in row: {row['hospital_pk']}")
+                        hospitals_error_count += 1
                 except Exception as e:
                     print(f"Error inserting data into Hospitals for row {index}: {e}")
 
@@ -75,8 +86,10 @@ def load_hhs_data(csv_file, conn):
                     if not check_duplicate_id(curr, 'HospitalLocations', 'hospital_fk', row['hospital_pk']):
                         curr.execute(''' INSERT INTO HospitalLocations (hospital_fk, state, address, city, zip, fips_code, geocoded_hospital_address) VALUES (%s, %s, %s, %s, %s, %s, %s)''', 
                             (row['hospital_pk'], row['state'], row['address'], row['city'], row['zip'], row['fips_code'], row['geocoded_hospital_address']))
+                        hospitallocation_success_count += 1
                     else: 
                         print(f"Skipping row {index} due to duplicate ID in row: {row['hospital_pk']}")
+                        hospitallocation_error_count += 1
                 except Exception as e:
                     print(f"Error inserting data into HospitalLocations for row {index}: {e}")
 
@@ -92,14 +105,20 @@ def load_hhs_data(csv_file, conn):
                         row['all_adult_hospital_inpatient_bed_occupied_7_day_coverage'], row['all_pediatric_inpatient_bed_occupied_7_day_avg'],
                         row['total_icu_beds_7_day_avg'], row['icu_beds_used_7_day_avg'], row['inpatient_beds_used_covid_7_day_avg'],
                         row['staffed_icu_adult_patients_confirmed_covid_7_day_avg']))
+                        hospitalbedinformation_success_count += 1
                     else: 
                         print(f"Skipping row {index} due to duplicate ID and date in row: {row['hospital_pk']}, {row['collection_week']}")
+                        hospitalbedinformation_error_count += 1
                 except Exception as e:
                     print(f"Error inserting data into HospitalBedInformation for row {index}: {e}")
 
             # Commit the changes
             conn.commit()
             print("Data loaded successfully.")
+            print(f"Total rows processed: {len(df)}")
+            print(f"Successful Hospitals inserts: {hospitals_success_count}, Errors: {hospitals_error_count}")
+            print(f"Successful HospitalLocations inserts: {hospitallocation_success_count}, Errors: {hospitallocation_error_count}")
+            print(f"Successful HospitalBedInformation inserts: {hospitalbedinformation_success_count}, Errors: {hospitalbedinformation_error_count}")
 
     except Exception as e:
         print(f"Error: {e}")
