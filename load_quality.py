@@ -48,6 +48,9 @@ def load_quality_data(csv_file, conn, date):
         df['hospital_overall_rating'] = df['hospital_overall_rating'].astype(float)
         df['emergency_services'] = df['emergency_services'].replace({'Yes': True, 'No': False})
 
+        success_count = 0
+        error_count = 0
+
         # Create a cursor and open a transaction
         with conn.cursor() as curr:
             # Insert data into the database
@@ -61,16 +64,15 @@ def load_quality_data(csv_file, conn, date):
                             VALUES (%s, %s, %s, %s, %s, %s)
                         ''', (row['facility_id'], row['hospital_overall_rating'], row['emergency_services'],
                             row['hospital_type'], row['hospital_ownership'], date))
-                        print(row['hospital_overall_rating'])
-                        print(row['emergency_services'])
-                        print(row['hospital_type'])
-                        print(row['hospital_ownership'])
-                        print(date)
+                        success_count += 1
                     else:
                         print(f"Skipping row {index} due to duplicate facility ID and date: {row['facility_id']}, {date}")
+                        error_count += 1
 
                 except Exception as e:
                     print(f"Error inserting data for row {index}: {e}")
+                    print(f"Total rows processed: {len(df)}, Successful inserts: {success_count}, Errors: {error_count}")
+
 
             # Commit the changes
             conn.commit()
