@@ -2,13 +2,39 @@ import pandas as pd
 import numpy as np
 import psycopg
 
+
 def check_duplicate_id(curr, table_name, facility_id, date):
+    """
+    Check if there is a duplicate entry for the given facility ID and date in the specified table.
+
+    Parameters:
+    - curr: psycopg cursor
+    - table_name: str, name of the table to check for duplicates
+    - facility_id: str, facility ID to check for duplicates
+    - date: date, date to check for duplicates
+
+    Returns:
+    - bool, True if a duplicate entry exists, False otherwise
+    """
     query = f"SELECT COUNT(*) FROM {table_name} WHERE facility_id = %s AND data_date = %s"
     curr.execute(query, (facility_id, date))
     count = curr.fetchone()[0]
     return count > 0
 
+
 def load_quality_data(csv_file, conn, date):
+    """
+    Load quality data from a CSV file into a PostgreSQL database.
+
+    Parameters:
+    - csv_file: str, path to the CSV file containing quality data
+    - conn: psycopg connection, connection to the PostgreSQL database
+    - date: str, date in 'YYYY-MM-DD' format
+
+    Raises:
+    - ValueError: If data loading fails
+    """
+
     try:
         # Load CSV file into a pandas DataFrame
         df = pd.read_csv(csv_file)
