@@ -20,6 +20,7 @@ pip install psycopg
 ## Usage
 
 ### Weekly Updates (HHS Data)
+
 To load the HHS data, use the following command:
 
 ```
@@ -32,6 +33,7 @@ python load-hhs.py 2022-01-04-hhs-data.csv
 ```
 
 ### Quality Data (CMS Data)
+
 To load the CMS data, use the following command:
 ```
 python load_qualirt.py <date> <file_name>
