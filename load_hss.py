@@ -51,13 +51,41 @@ def batch_insert_data(curr, table_name, column_names, data):
     curr.executemany(query, data)
 
 
-def load_hhs_data(csv_file, conn):
+def write_invalid_rows_to_csv(file_path, invalid_rows_ind, csv_file, data):
+    """
+    Write invalid rows to a CSV file.
+
+    * Note that the CSV filepath is going to be 'invalid_data/given_csv_filename.csv' by default.
+      However, if the user specified a filepath in the command line, then that filepath will be used.
+
+    ex) Command line input: python ./loadd_hss.py ./hhs_data/2022-10-21-hhs-data.csv
+        -> writes invalid csv file to: invalid_data/2022-10-21-hhs-data_invalid.csv
+
+        Command line input: python ./load_hss.py ./hhs_data/2022-10-21-hhs-data-csv ./mydir/my_invalid_data_name.csv
+        -> writes invalid csv file to: ./mydir/my_invalid_data_name.csv
+
+    Parameters:
+    - file_path: str, path to the CSV file
+    - invalid_rows_ind: int list, list containing the indices of invalid rows in data
+    - csv_file: str, path to the CSV file containing HHS data
+    - data: pdDataFrame, data frame that is already preprocessed from reading csv_file
+    """
+    invalid_df = data.iloc[invalid_rows_ind]
+    if file_path is None:
+        new_file_path = "invalid_data/" + csv_file.split('/')[-1].split('.')[0] + "_invalid.csv"
+        invalid_df.to_csv(new_file_path, index=False)
+    else:
+        invalid_df.to_csv(file_path, index=False)
+
+
+def load_hhs_data(csv_file, conn, invalid_file):
     """
     Load HHS (Health and Human Services) data from a CSV file into a PostgreSQL database.
 
     Parameters:
     - csv_file: str, path to the CSV file containing HHS data
     - conn: psycopg connection, connection to the PostgreSQL database
+    - invalid_file: str, path to the invalid rows CSV
 
     Raises:
     - ValueError: If data loading fails
@@ -70,7 +98,7 @@ def load_hhs_data(csv_file, conn):
         return
 
     # Do necessary processing on the DataFrame (e.g., handle -999 values, parse dates)
-    df.replace(-999999, None, inplace=True) 
+    df.replace(-999999, None, inplace=True)
     df.replace({np.nan: None}, inplace=True)
 
     df = df.astype(float, errors='ignore')
@@ -84,6 +112,8 @@ def load_hhs_data(csv_file, conn):
 
     hospitalbedinformation_success_count = 0
     hospitalbedinformation_error_count = 0
+
+    invalid_rows_index = []
 
     start_time = time.time()
     try:
@@ -106,7 +136,8 @@ def load_hhs_data(csv_file, conn):
                         logging.info(f"Skipping row {index} due to duplicate ID in row: {row['hospital_pk']}")
                         hospitals_error_count += 1
                 except Exception as e:
-                    logging.error(f"Error inserting data into Hospitals for row {index}: {e}")
+                    logging.error(f"Error inserting data into Hospitals for row {index}: {e}") 
+                    invalid_rows_index.append(index)
 
                 try:
                     # Insert into HospitalLocations table
@@ -118,6 +149,7 @@ def load_hhs_data(csv_file, conn):
                         hospitallocation_error_count += 1
                 except Exception as e:
                     logging.error(f"Error inserting data into HospitalLocations for row {index}: {e}")
+                    invalid_rows_index.append(index)
 
                 try:
                     # Insert into HospitalBedInformation table
@@ -132,6 +164,7 @@ def load_hhs_data(csv_file, conn):
                         hospitalbedinformation_error_count += 1
                 except Exception as e:
                     logging.error(f"Error inserting data into HospitalBedInformation for row {index}: {e}")
+                    invalid_rows_index.append(index)
 
             # Batch inserts
             batch_insert_data(curr, 'Hospitals', ['hospital_pk', 'hospital_name'], hospitals_data)
@@ -158,15 +191,21 @@ def load_hhs_data(csv_file, conn):
     end_time = time.time()
     logging.info("time: %s", end_time - start_time)
 
+    write_invalid_rows_to_csv(invalid_file, invalid_rows_index, csv_file, df)
+
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         logging.error("Usage: python load_hhs.py <csv_file>")
         sys.exit(1)
 
     csv_file = sys.argv[1]
+    if len(sys.argv) == 2:
+        invalid_file = None
+    else:
+        invalid_file = sys.argv[2]
 
     conn = None
     try:
@@ -176,7 +215,7 @@ if __name__ == "__main__":
             user="jihyoc",
             password="W0M4uzhKys"
         )
-        load_hhs_data(csv_file, conn)
+        load_hhs_data(csv_file, conn, invalid_file)
     except ValueError as ve:
         logging.error(ve)
     finally:
