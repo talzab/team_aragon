@@ -16,6 +16,7 @@ cd team_aragon
 2. Install the required Python packages:
 ```
 pip install psycopg
+pip install tdqm
 ```
 ## Usage
 
