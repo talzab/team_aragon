@@ -1,2 +1,0 @@
-2023-12-01 15:17:41,305 - INFO - Data loaded successfully.
-2023-12-01 15:17:41,318 - INFO - 5307 successful inserts out of 5307, errors: (0 duplicates, 0 errors)
