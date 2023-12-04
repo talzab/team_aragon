@@ -25,13 +25,13 @@ pip install tdqm
 To load the HHS data, use the following command:
 
 ```
-python load-hhs.py <file_name>
+python load_hhs.py <file_name>
 ```
 Replace <file_name> with the name of the CSV file containing the weekly updates.
 
 For example: 
 ```
-python load-hhs.py 2022-01-04-hhs-data.csv
+python load_hhs.py 2022-01-04-hhs-data.csv
 ```
 
 ### Quality Data (CMS Data)
@@ -44,7 +44,7 @@ Replace <file_name> with the name of the CSV file containing the quality data.
 
 For example:
 ```
-python load-quality.py 2021-07-01 Hospital_General_Information-2021-07.csv
+python load_quality.py 2021-07-01 Hospital_General_Information-2021-07.csv
 ```
 
 
