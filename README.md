@@ -52,5 +52,5 @@ To run the automatic reporting pipeline, use the following command:
 ```
 streamlit run Reporting.py
 ```
-
+Then, copy and paste the localhost into your browser.
 
